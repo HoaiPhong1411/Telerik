@@ -6,7 +6,7 @@ export interface ProductCategory {
 }
 
 export interface Product {
-    ProductID: number;
+    ProductID?: number;
     ProductName?: string;
     SupplierID?: number;
     CategoryID?: number;
@@ -20,6 +20,7 @@ export interface Product {
     expanded?: boolean;
     inEdit?: boolean | string;
     locked?: boolean;
+    status?: number;
 }
 
 export interface columnInterface {
