@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
 import {
     Grid,
     GridCellProps,
@@ -7,20 +6,16 @@ import {
     GridDataStateChangeEvent,
     GridExpandChangeEvent,
     GridItemChangeEvent,
-    GridPageChangeEvent,
-    GridToolbar
+    GridPageChangeEvent
 } from '@progress/kendo-react-grid';
 import '@progress/kendo-theme-default/dist/all.css';
 import MyCommandCell from './myCommandCell';
-import { insertItem, getItems, updateItem, deleteItem } from './services';
-import { Product } from './interfaces';
+import { getItems, updateItem, deleteItem } from './services';
 import { AggregateDescriptor, DataResult, process, State } from '@progress/kendo-data-query';
-import { getGroupIds, setExpandedState, setGroupIds } from '@progress/kendo-react-data-tools';
-import sampleProducts from './sample-product';
+import { setExpandedState, setGroupIds } from '@progress/kendo-react-data-tools';
 import useUserApi from 'hooks/useUserApi';
 import { IUser } from 'types/users';
 import _ from 'lodash';
-import { Typography } from '@mui/material';
 
 const editField: string = 'inEdit';
 
@@ -52,88 +47,91 @@ const processWithGroups = (data: IUser[], dataState: State) => {
 };
 
 const TbTelerik = ({ dataList, page, size }: { dataList: IUser[]; page: number; size: number }) => {
-    const [data, setData] = React.useState<IUser[]>([]);
+    const [data, setData] = React.useState<IUser[]>(dataList);
     const [dataState, setDataState] = React.useState<State>(initialDataState);
     const [resultState, setResultState] = React.useState<DataResult>(processWithGroups(dataList, initialDataState));
     const [dataEdit, setDataEdit] = React.useState<any>({});
     const [id, setId] = React.useState<number>();
     const [collapsedState, setCollapsedState] = React.useState<string[]>([]);
     const { mUpdateUser, mUserList } = useUserApi({ id });
-    React.useEffect(() => {
-        if (dataList) {
-            const dt = _.map(dataList, (item) => {
-                item.inEdit = false;
-                return item;
-            });
-            console.log(dt);
-            setData(dataList);
-            // setDataState({ ...dataState, take: dataList.length });
-        }
-    }, []);
+    // React.useEffect(() => {
+    //     if (dataList) {
+    //         const dt = _.map(dataList, (item) => {
+    //             item.inEdit = false;
+    //             return item;
+    //         });
+    //         setData(dataList);
+    //         // setDataState({ ...dataState, take: dataList.length });
+    //     }
+    // }, []);
 
     // modify the data in the store, db etc
-    const remove = (dataItem: IUser) => {
-        const newData = deleteItem(dataItem, dataList);
-        setResultState(processWithGroups(newData, dataState));
-    };
+    // const remove = (dataItem: IUser) => {
+    //     const newData = deleteItem(dataItem, dataList);
+    //     setResultState(processWithGroups(newData, dataState));
+    // };
 
-    const update = (dataItem: IUser) => {
-        dataItem.inEdit = false;
-        console.log(dataEdit);
-        mUpdateUser.mutate(dataEdit);
-        const newData = updateItem(dataItem, dataList);
-        setResultState(processWithGroups(newData, dataState));
-    };
+    // const update = (dataItem: IUser) => {
+    //     dataItem.inEdit = false;
+    //     mUpdateUser.mutate(dataEdit);
+    //     const newData = updateItem(dataItem, dataList);
+    //     setResultState(processWithGroups(newData, dataState));
+    // };
 
     // Local state operations
-    const discard = () => {
-        const newData = [...data];
-        newData.splice(0, 1);
-        setResultState(processWithGroups(newData, dataState));
-    };
+    // const discard = () => {
+    //     const newData = [...data];
+    //     newData.splice(0, 1);
+    //     setResultState(processWithGroups(newData, dataState));
+    // };
 
-    const cancel = (dataItem: IUser) => {
-        const originalItem = getItems(dataList).find((p) => p.id === dataItem.id);
-        if (originalItem) {
-            const newData = data.map((item) => (item.id === originalItem.id ? originalItem : item));
-            setResultState(processWithGroups(newData, dataState));
-        }
-        mUserList.mutate({ page, size });
-    };
+    // const cancel = (dataItem: IUser) => {
+    //     const originalItem = getItems(dataList).find((p) => p.id === dataItem.id);
+    //     if (originalItem) {
+    //         const newData = data.map((item) => (item.id === originalItem.id ? originalItem : item));
+    //         setResultState(processWithGroups(newData, dataState));
+    //     }
+    //     mUserList.mutate({ page, size });
+    // };
 
-    const enterEdit = (dataItem: IUser) => {
-        setId(dataItem.id);
-        setResultState(
-            processWithGroups(
-                data.map((item) => (item.id === dataItem.id ? { ...item, inEdit: true } : item)),
-                initialDataState
-            )
-        );
-    };
+    // const enterEdit = (dataItem: IUser) => {
+    //     setId(dataItem.id);
+    //     setResultState(
+    //         processWithGroups(
+    //             data.map((item) => (item.id === dataItem.id ? { ...item, inEdit: true } : item)),
+    //             initialDataState
+    //         )
+    //     );
+    // };
 
-    const itemChange = (event: GridItemChangeEvent) => {
-        const newData = data.map((item) =>
-            item.id === event.dataItem.id ? { ...item, [event.field || '']: event.value, inEdit: true } : item
-        );
-        event.field && setDataEdit({ ...dataEdit, [event.field]: event.value });
-        setData(newData);
-        setResultState(processWithGroups(newData, dataState));
-    };
+    // const itemChange = (event: GridItemChangeEvent) => {
+    //     const newData = data.map((item) =>
+    //         item.id === event.dataItem.id ? { ...item, [event.field || '']: event.value, inEdit: true } : item
+    //     );
+    //     event.field && setDataEdit({ ...dataEdit, [event.field]: event.value });
+    //     setData(newData);
+    //     setResultState(processWithGroups(newData, dataState));
+    // };
 
-    const CommandCell = (props: GridCellProps) => (
-        <MyCommandCell
-            {...props}
-            edit={enterEdit}
-            remove={remove}
-            discard={discard}
-            update={update}
-            cancel={cancel}
-            editField={editField}
-        />
-    );
+    // const CommandCell = (props: GridCellProps) => (
+    //     <MyCommandCell
+    //         {...props}
+    //         edit={enterEdit}
+    //         remove={remove}
+    //         discard={discard}
+    //         update={update}
+    //         cancel={cancel}
+    //         editField={editField}
+    //     />
+    // );
 
     const onDataStateChange = React.useCallback((event: GridDataStateChangeEvent) => {
         const newDataState = processWithGroups(dataList, event.dataState);
+        // function mapData(item: any) {
+        //     console.log(item.field === dataState);
+        //     return item;
+        // }
+        // _.map(event.dataState.group, mapData);
 
         setDataState(event.dataState);
         setResultState(newDataState);
@@ -170,8 +168,8 @@ const TbTelerik = ({ dataList, page, size }: { dataList: IUser[]; page: number; 
                 reorderable
                 groupable
                 data={newData}
-                onItemChange={itemChange}
-                editField={editField}
+                // onItemChange={itemChange}
+                // editField={editField}
                 onDataStateChange={onDataStateChange}
                 {...dataState}
                 onExpandChange={onExpandChange}
@@ -190,7 +188,7 @@ const TbTelerik = ({ dataList, page, size }: { dataList: IUser[]; page: number; 
                 <Column field="password" title="password" width="200px" />
                 <Column field="image" title="image" width="200px" />
 
-                <Column cell={CommandCell} width="200px" />
+                {/* <Column cell={CommandCell} width="200px" /> */}
             </Grid>
         </>
     );

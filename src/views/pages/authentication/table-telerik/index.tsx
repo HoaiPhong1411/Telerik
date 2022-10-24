@@ -1,6 +1,7 @@
 import { Typography } from '@mui/material';
 import useUserApi from 'hooks/useUserApi';
 import React from 'react';
+import TableTelerik from './components/TableTelerik';
 import TBTelerik from './components/TBTelerik';
 import TbTelerik from './TbTelerik';
 
@@ -12,8 +13,8 @@ const PageTelerik = () => {
         mUserList.mutate({ page, size });
     }, []);
 
-    return dataUserList ? <TbTelerik dataList={dataUserList} page={page} size={size} /> : <TBTelerik />;
-    // return <Typography>concac</Typography>;
+    // return dataUserList ? <TableTelerik /> : <TbTelerik dataList={dataUserList} page={page} size={size} />;
+    return dataUserList ? <TableTelerik dataList={dataUserList} groupColumn="company.id" /> : <TBTelerik />;
 };
 
 export default PageTelerik;

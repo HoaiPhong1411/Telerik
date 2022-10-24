@@ -68,27 +68,27 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
                         }
                     });
                 } else {
-                    // dispatch({
-                    //     type: LOGOUT
-                    // });
                     dispatch({
-                        type: LOGIN,
-                        payload: {
-                            isLoggedIn: true
-                        }
+                        type: LOGOUT
                     });
+                    // dispatch({
+                    //     type: LOGIN,
+                    //     payload: {
+                    //         isLoggedIn: true
+                    //     }
+                    // });
                 }
             } catch (err) {
                 console.error(err);
-                // dispatch({
-                //     type: LOGOUT
-                // });
                 dispatch({
-                    type: LOGIN,
-                    payload: {
-                        isLoggedIn: true
-                    }
+                    type: LOGOUT
                 });
+                // dispatch({
+                //     type: LOGIN,
+                //     payload: {
+                //         isLoggedIn: true
+                //     }
+                // });
             }
         };
 

@@ -1,10 +1,11 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { Grid, GridCellProps, GridColumn, GridItemChangeEvent, GridToolbar } from '@progress/kendo-react-grid';
+import { Grid, GridCellProps, GridColumn, GridItemChangeEvent, GridToolbar, GRID_COL_INDEX_ATTRIBUTE } from '@progress/kendo-react-grid';
 import { DropDownList } from '@progress/kendo-react-dropdowns';
 import { GridPDFExport } from '@progress/kendo-react-pdf';
 import { ExcelExport } from '@progress/kendo-react-excel-export';
 import { IntlProvider, load, LocalizationProvider, loadMessages, IntlService } from '@progress/kendo-react-intl';
+import '@progress/kendo-theme-default/dist/all.css';
 
 import esMessages from '../es.json';
 
@@ -13,8 +14,8 @@ import orders from '../orders.json';
 import { deleteItem, getItems, updateItem } from './service';
 import MyCommandCell from '../myCommandCell';
 import { Product } from '../interfaces';
-
-const editField: string = 'inEdit';
+import { IUser } from 'types/users';
+import { useTableKeyboardNavigation } from '@progress/kendo-react-data-tools';
 
 const DetailComponent = (props: any) => {
     loadMessages(esMessages, 'es-ES');
@@ -50,27 +51,42 @@ const DetailComponent = (props: any) => {
         </div>
     );
 };
+interface item {
+    color: string;
+}
 
-const TBTelerik = () => {
+interface CustomCellProps extends GridCellProps {
+    myProp: Array<item>;
+}
+
+interface Iprops {
+    dataList: IUser[];
+    groupColumn: string;
+}
+
+const TableTelerik = (props: Iprops) => {
+    const { dataList, groupColumn } = props;
+
     const [dataState, setDataState] = React.useState<any>({
         skip: 0,
         take: 20,
-        sort: [
-            {
-                field: 'orderDate',
-                dir: 'desc'
-            }
-        ],
+        // sort: [
+        //     {
+        //         field: 'orderDate',
+        //         dir: 'desc'
+        //     }
+        // ],
         group: [
             {
-                field: 'customerID'
+                field: groupColumn
             }
         ]
     });
-    const [dataResult, setDataResult] = React.useState(process(orders, dataState));
+
+    const [dataResult, setDataResult] = React.useState(process(dataList, dataState));
 
     const dataStateChange = (event: any) => {
-        setDataResult(process(orders, event.dataState));
+        setDataResult(process(dataList, event.dataState));
         setDataState(event.dataState);
     };
 
@@ -80,45 +96,43 @@ const TBTelerik = () => {
         setDataResult({ ...dataResult });
     };
 
-    const update = (dataItem: Product) => {
-        dataItem.inEdit = false;
-        const newData = updateItem(dataItem, orders);
-        setDataResult(process(newData, dataState));
-    };
+    const CustomCell = (propsCell: CustomCellProps) => {
+        const { field, dataItem, id, myProp, colSpan, ariaColumnIndex, isSelected, columnIndex } = propsCell;
+        const value = dataItem[field || ''];
+        const navigationAttributes = useTableKeyboardNavigation(id);
+        console.log({ field, dataItem, id, myProp, colSpan, ariaColumnIndex, isSelected, columnIndex });
+        function TitleStatus(status: number) {
+            let title;
+            switch (status) {
+                case 1:
+                    title = 'Success';
+                    break;
+                case 0:
+                    title = 'Fail';
+                    break;
 
-    // Local state operations
-
-    const cancel = (dataItem: Product) => {
-        const originalItem = getItems(orders).find((p) => p.ProductID === dataItem.ProductID);
-        if (originalItem) {
-            const newData = orders.map((item) => (item?.details[0].productID === originalItem.ProductID ? originalItem : item));
-            setDataResult(process(newData, dataState));
+                default:
+                    break;
+            }
+            return title;
         }
-    };
-
-    const enterEdit = (dataItem: Product) => {
-        function mapData(item: Product) {
-            return item.ProductID === dataItem.ProductID ? { ...item, inEdit: true } : item;
-        }
-
-        setDataResult(
-            process(
-                orders.map((item: Product) => mapData(item)),
-                dataState
-            )
+        return (
+            <td
+                style={{ color: value ? myProp[0].color : myProp[1].color }}
+                colSpan={colSpan}
+                role="gridcell"
+                aria-colindex={ariaColumnIndex}
+                aria-selected={isSelected}
+                {...{ [GRID_COL_INDEX_ATTRIBUTE]: columnIndex }}
+                {...navigationAttributes}
+            >
+                {TitleStatus(value)}
+            </td>
         );
     };
 
-    const itemChange = (event: GridItemChangeEvent) => {
-        const newData = orders.map((item) =>
-            item.orderID === event.dataItem.orderID ? { ...item, [event.field || '']: event.value, inEdit: true } : item
-        );
-        setDataResult(process(newData, dataState));
-    };
-
-    const CommandCell = (props: GridCellProps) => (
-        <MyCommandCell {...props} edit={enterEdit} update={update} cancel={cancel} editField={editField} />
-    );
+    const customData: Array<any> = [{ color: 'green' }, { color: 'red' }];
+    const MyCustomCell = (propsCell: GridCellProps) => <CustomCell {...propsCell} myProp={customData} />;
 
     return (
         <>
@@ -131,25 +145,23 @@ const TBTelerik = () => {
                 groupable
                 reorderable
                 pageable={{
-                    buttonCount: 4,
+                    // buttonCount: 4,
                     pageSizes: true
                 }}
                 data={dataResult}
                 {...dataState}
                 onDataStateChange={dataStateChange}
-                detail={DetailComponent}
+                // detail={DetailComponent}
                 expandField="expanded"
                 onExpandChange={expandChange}
-                onItemChange={itemChange}
             >
-                <GridColumn field="customerID" width="200px" />
-                <GridColumn field="orderDate" filter="date" format="{0:D}" width="300px" />
-                <GridColumn field="shipName" width="280px" />
-                <GridColumn field="status" filter="numeric" width="200px" />
-                <GridColumn cell={CommandCell} width="200px" />
+                <GridColumn field="company.id" title="Company Id" width="200px" />
+                <GridColumn field="company.merchantId" title="Company Name" width="300px" />
+                <GridColumn field="nickname" width="280px" />
+                <GridColumn field="status" filter="numeric" width="200px" cell={MyCustomCell} />
             </Grid>
         </>
     );
 };
 
-export default TBTelerik;
+export default TableTelerik;
